@@ -1,26 +1,39 @@
-# template-node-express-project-ts
-Template for a full back-end project using Typescript
+# Livestock Management Software
 
-installed dependencies:
-dotenv: me permite utilizar las variables de entorno que tenga en mi archivo .env
-express: framework de node que me permite crear facilmente un servidor de node
-nodemon: dependencia utilizada para escuchar cambios y servir el projecto de manera automatica
-cors: crea una restruncion a las solicitudes HTTP que se originen en una secuencia de comenados en el navegador
-helmet: create a setting HTTP headers to secure the server
+Livestock Management Software is a product management and administration software designed for livestock farms. It is built with Node.js, Express, TypeScript, Swagger, and Sequelize.
 
-Scripts: 
+## Technologies Used
 
-build": "npx tsc",
--crea una build compilada del projecto para ejecutar en el navegador
+~~~
+- Node.js
+- Express.js
+- TypeScript
+- Swagger
+- Sequelize
+- Jest
+- Eslint
+- Prettier
+- Webpack
+~~~
 
-start": "node dist/index.js",
-sirve el servidor atravez del index compilado en la carpeta dist
+## Getting Started
 
-dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\"",
-ejecuta y escucha cambios en los archivos typescript y a su vez los compila en el index.js para luego servir el projecto
+1. Clone the repository: `git clone https://github.com/ElGoel/Livestock-Management-Software.git`
+2. Install dependencies: `npm install`
+3. Create a `.env` file and set the environment variables.
+4. Start the server: `npm run start`
 
-test": "jest",
-ejecuta los test en Jest
+## Scripts
 
-serve:coverage": "npm run test && cd coverage/lcov-report && npx serve"
-Ejecuta los test de jest, busca la carpeta donde se encuentra el renderizado de las pruebas y luego las sirve en el navegador para ser visualizadas
+- `npm run dev`: Starts the application in development mode.
+- `npm test`: Runs the test suite.
+- `npm run serve:coverage`: Serves the coverage report.
+- `npm run build`: Builds the application in development mode.
+- `npm start`: Starts the application in production mode.
+- `npm run build:prod`: Builds the application in production mode.
+- `npm run lint`: Lints the codebase.
+- `npm run format`: Formats the codebase using Prettier.
+
+## License
+
+*Angelo Colmenares Copyright© 2023*
