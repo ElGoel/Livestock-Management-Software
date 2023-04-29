@@ -1,19 +1,22 @@
-import { DataTypes, type Model, Sequelize, type ModelStatic } from 'sequelize';
+import {
+  DataTypes,
+  type Sequelize,
+  type Model,
+  type ModelStatic,
+} from 'sequelize';
 import logger from '../../utils/logger';
 import { type ICattle } from '../../interfaces/cattle.interface';
 
 export /**
  * Sequelize Model interface of the Table "Cattle"
  * ? This Method is defined a Sequelize Model in the 'Cattle' Table and synchronized with the db
+ * @param sequelize // ? the connection to the database
  * @return {Promise<ModelStatic<Model<ICattle>>>}
  */
-const cattleEntity = async (): Promise<ModelStatic<Model<ICattle>>> => {
-  const sequelize = new Sequelize('postgres', 'postgres', 'angelopass', {
-    host: 'localhost',
-    dialect: 'postgres',
-  });
-
-  const Cattle = sequelize.define('Cattle', {
+const cattleEntity = async (
+  sequelize?: Sequelize
+): Promise<ModelStatic<Model<ICattle>> | undefined> => {
+  const Cattle = sequelize?.define('Cattle', {
     number: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -44,7 +47,7 @@ const cattleEntity = async (): Promise<ModelStatic<Model<ICattle>>> => {
     },
   });
 
-  await Cattle.sync()
+  await Cattle?.sync()
     .then(() => {
       logger('Table and model synced successfully');
     })

@@ -2,15 +2,19 @@
 import { Route, Tags, Post } from 'tsoa';
 
 // ? Interfaces & Types
-import { type BasicResponse, type ICattleController } from '../interfaces';
+import {
+  type DataResponse,
+  type BasicResponse,
+  type ICattleController,
+} from '../interfaces';
 import { type ICattle } from '../interfaces/cattle.interface';
+import { type Sequelize } from 'sequelize';
 
 // ? Utils Methods
 import logger from '../utils/logger';
 
 // ? ORM Methods C.R.U.D
-import { createCattle } from '../models/orm/Cattle.orm';
-import { type Model } from 'sequelize';
+import { createCattle, getAllCattle } from '../models/orm/Cattle.orm';
 
 @Route('/api/cattle')
 @Tags('KatasController')
@@ -23,9 +27,10 @@ export class CattleController implements ICattleController {
    */
   @Post('/')
   public async createCattle(
-    cattle: ICattle
-  ): Promise<BasicResponse | Model<ICattle> | undefined> {
-    let response: BasicResponse | Model<ICattle> | undefined;
+    cattle: ICattle,
+    connection?: Sequelize
+  ): Promise<BasicResponse | undefined> {
+    let response: BasicResponse | undefined;
 
     try {
       if (cattle !== undefined) {
@@ -34,7 +39,7 @@ export class CattleController implements ICattleController {
           'info',
           'users'
         );
-        response = await createCattle(cattle);
+        response = await createCattle(cattle, connection);
         logger(
           `[/api/cattle] Cattle: ${cattle.number} Created successfully`,
           'info',
@@ -50,6 +55,25 @@ export class CattleController implements ICattleController {
         );
       }
     }
+    return response;
+  }
+
+  public async getCattle(
+    page: number,
+    limit: number,
+    connection?: Sequelize,
+    id?: string
+  ): Promise<DataResponse | unknown | undefined> {
+    let response: DataResponse | undefined | unknown;
+
+    if (id !== undefined) {
+      logger(`[/api/cattle] GET Kata by ID ${id} Request`, 'info', 'users');
+      // TODO: get cattle from ID request
+    } else {
+      logger('[/api/cattle] GET All Cattle Request');
+      response = await getAllCattle(page, limit, connection);
+    }
+
     return response;
   }
 }

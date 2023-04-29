@@ -1,16 +1,21 @@
+import { type Sequelize, type Model } from 'sequelize';
 import { type ICattle } from './cattle.interface';
-import { type BasicResponse } from './response.interface';
-
-export interface IHelloController {
-  getMessage: (name?: string) => Promise<BasicResponse>;
-}
+import { type DataResponse, type BasicResponse } from './response.interface';
 
 export interface ICattleController {
   // ? Get All Cattle's || Get cattle by Number: from 'Cattle' Table
-  // getCattle: (page: number, limit: number, id?: string) => Promise<any>;
+  getCattle: (
+    page: number,
+    limit: number,
+    connection: Sequelize,
+    id?: string
+  ) => Promise<DataResponse | unknown | undefined>;
 
   // ? Create a new Cattle
-  createCattle: (cattle: ICattle) => Promise<any>;
+  createCattle: (
+    cattle: ICattle,
+    connection: Sequelize
+  ) => Promise<BasicResponse | Model<ICattle> | undefined>;
 
   // // ? Update a Cattle
   // updateCattle: (id: string, cattle: ICattle) => Promise<any>;

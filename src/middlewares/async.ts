@@ -1,11 +1,15 @@
 import { type Request, type Response, type NextFunction } from 'express';
 
-const asyncMiddleware = (handler: any) => {
+const asyncMiddleware = (
+  handler: (req: Request, res: Response, next: NextFunction) => Promise<void>
+) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await handler(req, res);
+      await handler(req, res, next);
     } catch (ex) {
-      next(ex);
+      if (ex !== undefined) {
+        next(ex);
+      }
     }
   };
 };
