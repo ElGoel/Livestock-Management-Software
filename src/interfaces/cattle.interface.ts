@@ -1,4 +1,5 @@
 export interface ICattle {
+  id: number;
   number: number;
   race: number;
   initWeight: number;

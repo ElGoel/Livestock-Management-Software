@@ -51,6 +51,7 @@ cattleRouter.post(
           next(error);
         }
         const cattleObj: ICattle = _.pick(req.body, [
+          'id',
           'number',
           'race',
           'initWeight',
@@ -64,7 +65,7 @@ cattleRouter.post(
       })
       .catch(error => {
         if (error instanceof Error) {
-          logger(`[CONNECTION ERROR]:${error.message}`, 'error', 'db');
+          logger(`[ROUTER ERROR]:${error.message}`, 'error', 'db');
           next(error);
         }
       })
@@ -82,21 +83,48 @@ cattleRouter.get(
     connectDb()
       .then(async sequelize => {
         connection = sequelize;
-        const { page, limit } = req.query;
-        const id = req?.query?.id?.toString();
+        const limit = req?.query?.limit?.toString();
+        const page = req?.query?.page?.toString();
         let parsePage = 1;
         let parseLimit = 10;
-        if (typeof page === 'string' && typeof limit === 'string') {
-          logger(
-            `Query Param: ${id !== undefined ? id + ',' : ''} ${page}, ${limit}`
-          );
+        if (page !== undefined && limit !== undefined) {
+          logger(`Query Param: ${page}, ${limit}`);
           parseLimit = parseInt(limit);
           parsePage = parseInt(page);
         }
         const controller: CattleController = new CattleController();
         const response: DataResponse | unknown | undefined =
-          await controller.getCattle(parsePage, parseLimit, connection, id);
+          await controller.getCattle(parsePage, parseLimit, connection);
         res.status(200).send(response);
+      })
+      .catch(error => {
+        if (error instanceof Error && error !== undefined) {
+          logger(`[CONNECTION ERROR]:${error.message}`, 'error', 'db');
+          next(error);
+        }
+      })
+      .finally(async () => {
+        await disconnectDb(connection);
+      });
+  })
+);
+
+cattleRouter.get(
+  '/:id',
+  asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
+    let connection: Sequelize | undefined;
+    connectDb()
+      .then(async sequelize => {
+        connection = sequelize;
+        const number = parseInt(req.params.id);
+        const controller: CattleController = new CattleController();
+        const response = await controller.getCattleById(number, connection);
+
+        if (response !== null) {
+          res.status(200).send(response);
+        } else {
+          res.status(404).send(`The user with ID: ${number} does not exist`);
+        }
       })
       .catch(error => {
         if (error instanceof Error && error !== undefined) {
