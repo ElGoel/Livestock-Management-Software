@@ -1,7 +1,7 @@
 {
-  "name": "Livestock Management Sofware",
+  "name": "livestock_management_sofware",
   "version": "1.0.0",
-  "description": "",
+  "description": "Livestock product management and administration software designed for livestock farms.",
   "main": "index.js",
   "scripts": {
     "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\"",
@@ -18,7 +18,7 @@
     "express",
     "typescript",
     "swagger",
-    "mongoose"
+    "sequelize"
   ],
   "author": "@elgoel",
   "license": "ISC",
