@@ -12,7 +12,7 @@ export /**
  * * ORM Method
  * ? Method who receives a param [cattle] entity and use the CattleModel to create a new entity
  * @param {ICattle} [cattle]
- * @return {Promise<Model<ICattle> | Promise<BasicResponse> | undefined>}
+ * @return {Promise<BasicResponse | undefined>}
  */
 const createCattle = async (
   cattle: ICattle,
@@ -27,16 +27,18 @@ const createCattle = async (
       },
     });
     if (cattleExist !== null) {
-      response = { message: 'Cattle already exists' };
+      response = { message: 'Cattle already exists', status: 400 };
+    } else {
+      await cattleModel?.create(cattle);
+      response = {
+        message: `${cattle.register} Just register a Cattle with the number of ${cattle.number}, successfully`,
+        status: 201,
+      };
     }
-    await cattleModel?.create(cattle);
-    response = {
-      message: `${cattle.register} Just register a Cattle with the number of ${cattle.number}, successfully`,
-    };
   } catch (error) {
     if (error instanceof Error) {
       logger(`[ORM ERROR] Creating Cattle:${error.message}`, 'error', 'users');
-      response = { message: error.message };
+      response = { message: error.message, status: 400 };
     }
   }
   return response;
@@ -81,10 +83,9 @@ export const getCattleByIdOrNumber = async (
   number?: number,
   connection?: Sequelize
 ): CattleResult => {
-  let result: Model<ICattle, ICattle> | null | undefined;
   try {
     const cattleModel = await cattleEntity(connection);
-    result = await cattleModel?.findOne({
+    const response = await cattleModel?.findOne({
       where: {
         [Op.or]: [{ id: number }, { number }],
       },
@@ -92,7 +93,7 @@ export const getCattleByIdOrNumber = async (
         exclude: ['createdAt', 'updatedAt'],
       },
     });
-    return result;
+    return response;
   } catch (error) {
     if (error instanceof Error) {
       logger(
@@ -100,6 +101,34 @@ export const getCattleByIdOrNumber = async (
         'error',
         'users'
       );
+    }
+  }
+};
+
+export const updateCattleById = async (
+  id: number,
+  cattle: ICattle,
+  connection?: Sequelize
+): Promise<{ cattleUpdated: boolean; cattleExist: boolean } | undefined> => {
+  try {
+    const cattleModel = await cattleEntity(connection);
+    const cattleExist = (await cattleModel?.findByPk(id)) !== null;
+    console.log(cattleExist);
+    const cattleUpdated =
+      (await cattleModel?.update(cattle, {
+        where: {
+          id,
+        },
+      })) !== undefined;
+    return { cattleUpdated, cattleExist };
+  } catch (error) {
+    if (error instanceof Error) {
+      logger(
+        `[ORM ERROR] Error Updating Cattle:${error.message}`,
+        'error',
+        'users'
+      );
+      throw error;
     }
   }
 };

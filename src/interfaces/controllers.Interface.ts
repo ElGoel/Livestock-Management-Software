@@ -1,4 +1,4 @@
-import { type Sequelize, type Model } from 'sequelize';
+import { type Sequelize } from 'sequelize';
 import { type ICattle } from './cattle.interface';
 import { type BasicResponse } from './response.interface';
 import { type CattleResult } from '../types/PromiseTypeResponse';
@@ -16,13 +16,17 @@ export interface ICattleController {
   createCattle: (
     cattle: ICattle,
     connection: Sequelize
-  ) => Promise<BasicResponse | Model<ICattle> | undefined>;
+  ) => Promise<BasicResponse | undefined>;
 
   // ? Get cattle by Number: from 'Cattle' Table
   getCattleById: (name?: number, connection?: Sequelize) => CattleResult;
 
-  // // ? Update a Cattle
-  // updateCattle: (id: string, cattle: ICattle) => Promise<any>;
+  // ? Update a Cattle
+  updateCattle: (
+    id: number,
+    cattle: ICattle,
+    connection?: Sequelize
+  ) => Promise<BasicResponse | undefined>;
 
   // // ? Delete a Cattle
   // deleteCattle: (id: string) => Promise<any>;

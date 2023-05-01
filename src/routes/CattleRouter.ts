@@ -9,7 +9,10 @@ import { CattleController } from '../controller/CattleController';
 
 // ? Utils Methods
 import logger from '../utils/logger';
-import { validateCattle } from '../utils/validateCattle';
+import {
+  validateCreateCattle,
+  validateUpdateCattle,
+} from '../utils/validateCattle';
 
 // ? Interfaces & Types
 import { type ICattle } from '../interfaces/cattle.interface';
@@ -43,7 +46,7 @@ cattleRouter.post(
     connectDb()
       .then(async (sequelize?: Sequelize) => {
         connection = sequelize;
-        const { error } = validateCattle(req.body);
+        const { error } = validateCreateCattle(req.body);
         if (error !== undefined) {
           console.log(error);
           const { message } = error.details[0];
@@ -99,7 +102,7 @@ cattleRouter.get(
       })
       .catch(error => {
         if (error instanceof Error && error !== undefined) {
-          logger(`[CONNECTION ERROR]:${error.message}`, 'error', 'db');
+          logger(`[ROUTER ERROR]:${error.message}`, 'error', 'db');
           next(error);
         }
       })
@@ -111,6 +114,7 @@ cattleRouter.get(
 
 cattleRouter.get(
   '/:id',
+  errorHandler,
   asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
     let connection: Sequelize | undefined;
     connectDb()
@@ -128,7 +132,55 @@ cattleRouter.get(
       })
       .catch(error => {
         if (error instanceof Error && error !== undefined) {
-          logger(`[CONNECTION ERROR]:${error.message}`, 'error', 'db');
+          logger(`[ROUTER ERROR]:${error.message}`, 'error', 'db');
+          next(error);
+        }
+      })
+      .finally(async () => {
+        await disconnectDb(connection);
+      });
+  })
+);
+
+cattleRouter.put(
+  '/:id',
+  jsonParser,
+  errorHandler,
+  asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
+    let connection: Sequelize | undefined;
+    connectDb()
+      .then(async sequelize => {
+        connection = sequelize;
+        const id = parseInt(req.params.id);
+        const cattle: ICattle = req.body;
+        if (_.isEmpty(cattle)) {
+          res
+            .status(400)
+            .send(
+              'at least one filled field is needed to be able to update the entity'
+            );
+          logger(
+            'at least one filled field is needed to be able to update the entity'
+          );
+        }
+        const { error } = validateUpdateCattle(req.body);
+        if (error !== undefined) {
+          console.log(error);
+          const { message } = error.details[0];
+          res.status(400).send(message);
+          next(error);
+        }
+        const controller: CattleController = new CattleController();
+        const response = await controller.updateCattle(id, cattle, connection);
+        if (response !== undefined) {
+          res.status(response.status).send(response.message);
+        } else {
+          logger('something went wrong in the Controller', 'warn', 'users');
+        }
+      })
+      .catch(error => {
+        if (error instanceof Error && error !== undefined) {
+          logger(`[ROUTER ERROR]:${error.message}`, 'error', 'db');
           next(error);
         }
       })

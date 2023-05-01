@@ -5,6 +5,7 @@ import { Route, Tags, Post, Get } from 'tsoa';
 import { type BasicResponse, type ICattleController } from '../interfaces';
 import { type ICattle } from '../interfaces/cattle.interface';
 import { type Sequelize } from 'sequelize';
+import { type CattleResult } from '../types/PromiseTypeResponse';
 
 // ? Utils Methods
 import logger from '../utils/logger';
@@ -14,8 +15,8 @@ import {
   createCattle,
   getAllCattle,
   getCattleByIdOrNumber,
+  updateCattleById,
 } from '../models/orm/Cattle.orm';
-import { type CattleResult } from '../types/PromiseTypeResponse';
 
 @Route('/api/cattle')
 @Tags('CattleController')
@@ -35,21 +36,17 @@ export class CattleController implements ICattleController {
     let response: BasicResponse | undefined;
 
     try {
-      if (cattle !== undefined) {
-        logger(
-          `[/api/cattle] Creating New Cattle: ${cattle.number} Request`,
-          'info',
-          'users'
-        );
-        response = await createCattle(cattle, connection);
-        logger(
-          `[/api/cattle] Cattle: ${cattle.number} Created successfully`,
-          'info',
-          'users'
-        );
-      } else {
-        logger('[/api/cattle] Register needs cattle Entity', 'warn', 'users');
-      }
+      logger(
+        `[/api/cattle] Creating New Cattle: ${cattle.number} Request`,
+        'info',
+        'users'
+      );
+      response = await createCattle(cattle, connection);
+      logger(
+        `[/api/cattle] Cattle: ${cattle.number} Created successfully`,
+        'info',
+        'users'
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger(
@@ -84,7 +81,7 @@ export class CattleController implements ICattleController {
   /**
    * * Method to get the Cattle with the primary key from the id params of the 'Cattle' Table, using the ORM 'getCattleById'
    * @method getCattleById // ? ORM method
-   * @param {number} id // ? the id params to search cattle by Primary Key
+   * @param {number} number // ? the id params to search cattle by Primary Key
    * @param {Sequelize | undefined} [connection] // ? Instance of the Sequelize Connection
    * @return {CattleResult} // * Promise<DataResponse | Model<ICattle, ICattle> | null | undefined | unknown>
    * @memberof CattleController
@@ -104,5 +101,38 @@ export class CattleController implements ICattleController {
     } else {
       logger('[/api/cattle/:id] Error getting the Cattle', 'error', 'users');
     }
+  }
+
+  public async updateCattle(
+    id: number,
+    cattle: ICattle,
+    connection?: Sequelize
+  ): Promise<BasicResponse | undefined> {
+    const response: BasicResponse | undefined = {
+      message: '',
+      status: 0,
+    };
+    try {
+      logger('[/api/cattle] Updating the Cattle: Request', 'info', 'users');
+      const result = await updateCattleById(id, cattle, connection);
+      if (result?.cattleExist === false) {
+        response.status = 400;
+        response.message = `The Cattle provided was not found: ID = ${id}`;
+      } else if (result?.cattleUpdated === false) {
+        response.status = 400;
+        response.message = `Unable to update Cattle with the ID ${id}`;
+      } else {
+        response.status = 200;
+        response.message = `Cattle with the ID ${id} updated successfully`;
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        logger(
+          `[CONTROLLER ERROR]: There is a problem when updating a cattle: ${error.message}`
+        );
+      }
+      throw error;
+    }
+    return response;
   }
 }

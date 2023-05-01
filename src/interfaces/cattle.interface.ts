@@ -1,5 +1,5 @@
 export interface ICattle {
-  id: number;
+  id?: number;
   number: number;
   race: number;
   initWeight: number;
