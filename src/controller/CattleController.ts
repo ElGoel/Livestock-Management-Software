@@ -13,6 +13,7 @@ import logger from '../utils/logger';
 // ? ORM Methods C.R.U.D
 import {
   createCattle,
+  deleteCattleById,
   getAllCattle,
   getCattleByIdOrNumber,
   updateCattleById,
@@ -129,6 +130,38 @@ export class CattleController implements ICattleController {
       if (error instanceof Error) {
         logger(
           `[CONTROLLER ERROR]: There is a problem when updating a cattle: ${error.message}`
+        );
+      }
+      throw error;
+    }
+    return response;
+  }
+
+  public async destroyCattle(
+    id: number,
+    connection?: Sequelize
+  ): Promise<BasicResponse | undefined> {
+    const response: BasicResponse | undefined = {
+      message: '',
+      status: 0,
+    };
+    try {
+      logger('[/api/cattle] Delete the Cattle: Request', 'info', 'users');
+      const result = await deleteCattleById(id, connection);
+      if (result?.cattleExist === false) {
+        response.status = 400;
+        response.message = `The Cattle provided was not found: ID = ${id}`;
+      } else if (result?.cattleDestroy === false) {
+        response.status = 400;
+        response.message = `Unable to delete Cattle with the ID ${id}`;
+      } else {
+        response.status = 200;
+        response.message = `Cattle with the ID ${id} was delete successfully`;
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        logger(
+          `[CONTROLLER ERROR]: There is a problem when deleting a cattle: ${error.message}`
         );
       }
       throw error;

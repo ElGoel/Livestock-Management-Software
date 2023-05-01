@@ -1,7 +1,14 @@
+// ? Libraries and Packages
 import dotenv from 'dotenv';
+
+// ? Utils Functions
 import logger from '../../utils/logger';
-import { type ICattle } from '../../interfaces/cattle.interface';
+
+// ? Sequelize Model
 import { cattleEntity } from '../entities/Cattle.entity';
+
+// ? Types and Interfaces
+import { type ICattle } from '../../interfaces/cattle.interface';
 import { type Sequelize, type Model, Op } from 'sequelize';
 import { type DataResponse, type BasicResponse } from '../../interfaces';
 import { type CattleResult } from '../../types/PromiseTypeResponse';
@@ -113,7 +120,6 @@ export const updateCattleById = async (
   try {
     const cattleModel = await cattleEntity(connection);
     const cattleExist = (await cattleModel?.findByPk(id)) !== null;
-    console.log(cattleExist);
     const cattleUpdated =
       (await cattleModel?.update(cattle, {
         where: {
@@ -121,6 +127,28 @@ export const updateCattleById = async (
         },
       })) !== undefined;
     return { cattleUpdated, cattleExist };
+  } catch (error) {
+    if (error instanceof Error) {
+      logger(
+        `[ORM ERROR] Error Updating Cattle:${error.message}`,
+        'error',
+        'users'
+      );
+      throw error;
+    }
+  }
+};
+
+export const deleteCattleById = async (
+  cattleId: number,
+  connection?: Sequelize
+): Promise<{ cattleDestroy: boolean; cattleExist: boolean } | undefined> => {
+  try {
+    const cattleModel = await cattleEntity(connection);
+    const cattleExist = (await cattleModel?.findByPk(cattleId)) !== null;
+    const cattleDestroy =
+      (await cattleModel?.destroy({ where: { id: cattleId } })) !== undefined;
+    return { cattleExist, cattleDestroy };
   } catch (error) {
     if (error instanceof Error) {
       logger(

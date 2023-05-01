@@ -190,4 +190,35 @@ cattleRouter.put(
   })
 );
 
+cattleRouter.delete(
+  '/:id',
+  errorHandler,
+  asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
+    let connection: Sequelize | undefined;
+    connectDb()
+      .then(async sequelize => {
+        connection = sequelize;
+        const id = parseInt(req.params.id);
+        const controller: CattleController = new CattleController();
+        const response = await controller.destroyCattle(id, connection);
+        if (response !== undefined) {
+          console.log(response);
+          res.status(response.status).send(response.message);
+        } else {
+          logger('something went wrong in the Controller', 'warn', 'users');
+          res.status(500).send('Internal Server Error');
+        }
+      })
+      .catch(error => {
+        if (error instanceof Error && error !== undefined) {
+          logger(`[ROUTER ERROR]:${error.message}`, 'error', 'db');
+          next(error);
+        }
+      })
+      .finally(async () => {
+        await disconnectDb(connection);
+      });
+  })
+);
+
 export default cattleRouter;

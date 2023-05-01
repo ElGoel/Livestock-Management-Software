@@ -9,6 +9,8 @@ import helmet from 'helmet';
 
 // ? Router
 import rootRouter from '../routes';
+import errorHandler from '../middlewares/errorHandler';
+import logger from '../utils/logger';
 
 //* Create Express App
 const app: Express = express();
@@ -29,6 +31,16 @@ app.use(
   })
 );
 
+process.on('uncaughtException', ex => {
+  logger(ex, 'error', 'file');
+  process.exit(1);
+});
+
+process.on('unhandledRejection', ex => {
+  logger(ex, 'error', 'file');
+  process.exit(1);
+});
+
 //* Static Server
 app.use(express.static('public'));
 
@@ -39,6 +51,7 @@ app.use(cors());
 //* Content type Config:
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.json({ limit: '50mb' }));
+app.use(errorHandler);
 
 //* Redirection Config:
 // ? http://localhost:8000/ --> http://localhost:8000/api/

@@ -21,7 +21,11 @@ log4js.configure({
   },
 });
 
-const logger = (message: string, level = 'debug', module = 'default'): void => {
+const logger = (
+  message: unknown,
+  level = 'debug',
+  module = 'default'
+): void => {
   const logger: any = log4js.getLogger(module);
   logger.level = level;
   logger[level](message);

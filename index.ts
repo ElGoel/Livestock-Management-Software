@@ -15,6 +15,5 @@ app.listen(port, () => {
 
 //* Control SERVER ERROR
 app.on('error', error => {
-  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-  logger(`[SERVER ERROR]: ${error}`, 'info', 'app');
+  logger(error, 'info', 'app');
 });
