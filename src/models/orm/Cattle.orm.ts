@@ -17,9 +17,10 @@ dotenv.config();
 
 export /**
  * * ORM Method
- * ? Method who receives a param [cattle] entity and use the CattleModel to create a new entity
- * @param {ICattle} [cattle]
- * @return {Promise<BasicResponse | undefined>}
+ * * Method who receives a param [cattle] entity and use the CattleModel to create a new entity
+ * @param {Sequelize} [connection] // ? Connection to the database
+ * @param {ICattle} [cattle] // ? Cattle Object
+ * @return {Promise<BasicResponse | undefined>} status 201 response | status 400 response
  */
 const createCattle = async (
   cattle: ICattle,
@@ -51,7 +52,16 @@ const createCattle = async (
   return response;
 };
 
-export const getAllCattle = async (
+export /**
+ * * ORM Method
+ * * Method who receives [page] & [limit] to return an DataResponse
+ * * with the [totalPage, currentPage] and the Cattle list
+ * @param {number} page // ? Page of the of the [cattle] list
+ * @param {number} limit // ? Limit of items of the [cattle] list
+ * @param {Sequelize} [connection] // ? Connection to the database
+ * @return {Promise<DataResponse | undefined | unknown>}
+ */
+const getAllCattle = async (
   page: number,
   limit: number,
   connection?: Sequelize
@@ -86,7 +96,15 @@ export const getAllCattle = async (
   return response.cattle.length > 0 ? response : response.error;
 };
 
-export const getCattleByIdOrNumber = async (
+export /**
+ * * ORM Method:
+ * * Method who receives a [number] that can be the ID or the Number of the Cattle Entity
+ * * It will return a cattle entity with the id | number
+ * @param {number} [number] // ? the ID | Number of the [Cattle] to retrieve
+ * @param {Sequelize} [connection] // ? Connection to the database
+ * @return {CattleResult} // ? DataResponse | Model<ICattle, ICattle> | null | undefined | unknown
+ */
+const getCattleByIdOrNumber = async (
   number?: number,
   connection?: Sequelize
 ): CattleResult => {
@@ -112,7 +130,15 @@ export const getCattleByIdOrNumber = async (
   }
 };
 
-export const updateCattleById = async (
+export /**
+ ** ORM Method:
+ ** Method who receives a param [cattle] object and use the CattleModel to update an entity
+ * @param {number} id // ? The id of the cattle entity
+ * @param {ICattle} cattle // ? Cattle Object
+ * @param {Sequelize} [connection] // ? Connection to the database
+ * @return {Promise<{ cattleUpdated: boolean; cattleExist: boolean } | undefined>}
+ */
+const updateCattleById = async (
   id: number,
   cattle: ICattle,
   connection?: Sequelize
@@ -139,7 +165,14 @@ export const updateCattleById = async (
   }
 };
 
-export const deleteCattleById = async (
+export /**
+ * * ORM Method:
+ * * Method who receives the param [cattleId] id of the cattle entity from the 'Cattle' table.
+ * @param {number} cattleId // ? The id of the cattle entity
+ * @param {Sequelize} [connection] // ? Connection to the database
+ * @return {Promise<{ cattleDestroy: boolean; cattleExist: boolean } | undefined>}
+ */
+const deleteCattleById = async (
   cattleId: number,
   connection?: Sequelize
 ): Promise<{ cattleDestroy: boolean; cattleExist: boolean } | undefined> => {

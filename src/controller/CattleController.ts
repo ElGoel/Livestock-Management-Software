@@ -1,5 +1,5 @@
 // ? tsoa
-import { Route, Tags, Post, Get } from 'tsoa';
+import { Route, Tags, Post, Get, Put, Delete } from 'tsoa';
 
 // ? Interfaces & Types
 import { type BasicResponse, type ICattleController } from '../interfaces';
@@ -104,6 +104,19 @@ export class CattleController implements ICattleController {
     }
   }
 
+  /**
+   * *This code is a method that updates a cattle object in a database using an ORM called {updateCattleById}.
+   * *It takes in the ID of the object to be updated, the updated fields of the object, and an optional connection to the database.
+   * *It then checks if the update was successful or not and returns a response object with a message and a status code indicating the outcome.
+   * *If there was an error during the update process, the method logs the error and throws it.
+   * @method updateCattleById
+   * @param {number} id // ? ID of the object to be updated
+   * @param {ICattle} cattle // ? updated object
+   * @param {Sequelize} [connection] // ? connection to the database
+   * @return {Promise<BasicResponse | undefined>} // ? 400 response || 200 response
+   * @memberof CattleController
+   */
+  @Put('/:id')
   public async updateCattle(
     id: number,
     cattle: ICattle,
@@ -137,6 +150,18 @@ export class CattleController implements ICattleController {
     return response;
   }
 
+  /**
+   * *This is a Method that uses an ORM called Sequelize to update or delete cattle data from a database.
+   * *It takes in an ID, and optionally the updated cattle data or a database connection.
+   * *The function checks if the cattle to be updated or deleted exists and returns a response with a status code and message indicating if the operation was successful or not.
+   * *It also logs any errors that occur during the process.
+   * @method deleteCattleById // ? Method ORM
+   * @param {number} id // ? id of the object to be deleted
+   * @param {Sequelize} [connection] // ? Connection to the database
+   * @return {Promise<BasicResponse | undefined>} // ? 400 response || 200 response
+   * @memberof CattleController
+   */
+  @Delete('/:id')
   public async destroyCattle(
     id: number,
     connection?: Sequelize

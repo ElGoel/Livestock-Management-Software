@@ -24,7 +24,8 @@ import bodyParser from 'body-parser';
 
 // ? Middlewares
 import asyncMiddleware from '../middlewares/async';
-import { connectDb, disconnectDb } from '../middlewares/db';
+import connectDb from '../middlewares/connectDb';
+import disconnectDb from '../middlewares/disconnectDb';
 import errorHandler from '../middlewares/errorHandler';
 import { type Sequelize } from 'sequelize';
 
@@ -64,7 +65,9 @@ cattleRouter.post(
         const controller: CattleController = new CattleController();
         const response: BasicResponse | undefined =
           await controller.createCattle(cattleObj, connection);
-        res.status(201).send(response);
+        if (response !== undefined) {
+          res.status(response.status).send(response.message);
+        }
       })
       .catch(error => {
         if (error instanceof Error) {

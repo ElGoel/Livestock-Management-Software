@@ -1,69 +1,23 @@
-// import { type NextFunction, type Request, type Response } from 'express';
-import logger from '../utils/logger';
 import { Sequelize } from 'sequelize';
+// import dotenv from 'dotenv';
+// dotenv.config();
+
+// import config from 'config';
+
+const { DB_HOST, DB_NAME, DB_USER, DB_PASSWORD } = process.env;
 
 // ? Sequelize Instance
-const newSequelize = (): Sequelize => {
-  return new Sequelize('postgres', 'postgres', 'angelopass', {
-    host: 'localhost',
-    dialect: 'postgres',
-  });
+const newSequelize = (): Sequelize | undefined => {
+  if (
+    DB_HOST !== undefined &&
+    DB_NAME !== undefined &&
+    DB_USER !== undefined &&
+    DB_PASSWORD !== undefined
+  )
+    return new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
+      host: DB_HOST,
+      dialect: 'postgres',
+    });
 };
 
-/**
- * Method to connected to the database
- * @return {Promise<Sequelize>}
- */
-const connectDb = async (): Promise<Sequelize | undefined> => {
-  try {
-    const sequelize: Sequelize = newSequelize();
-    await sequelize.authenticate();
-    logger(
-      'Connection to database has been established successfully.',
-      'info',
-      'db'
-    );
-    return sequelize;
-  } catch (error: unknown) {
-    if (error instanceof Error && error !== undefined) {
-      logger(
-        `[Base Error]: Unable to connect to the database:${JSON.stringify(
-          error.message
-        )}`,
-        'error',
-        'db'
-      );
-    }
-  }
-};
-
-/**
- * Method to disconnect from the database
- * @return {Promise<void>}
- */
-const disconnectDb = async (sequelize?: Sequelize): Promise<void> => {
-  try {
-    if (sequelize !== undefined) {
-      await sequelize.close();
-    } else {
-      throw new Error('sequelize is undefined');
-    }
-    logger(
-      'Disconnection to database has been established successfully.',
-      'warn',
-      'db'
-    );
-  } catch (error: unknown) {
-    if (error instanceof Error && error !== undefined) {
-      logger(
-        `[Base Error]: Unable to disconnect to the database:${JSON.stringify(
-          error.message
-        )}`,
-        'error',
-        'db'
-      );
-    }
-  }
-};
-
-export { disconnectDb, connectDb, newSequelize };
+export default newSequelize;
