@@ -10,8 +10,11 @@ import { cattleEntity } from '../entities/Cattle.entity';
 // ? Types and Interfaces
 import { type ICattle } from '../../interfaces/cattle.interface';
 import { type Sequelize, type Model, Op } from 'sequelize';
-import { type DataResponse, type BasicResponse } from '../../interfaces';
-import { type CattleResult } from '../../types/PromiseTypeResponse';
+import { type DataResponse } from '../../interfaces';
+import {
+  type CreateResult,
+  type CattleResult,
+} from '../../types/PromiseTypeResponse';
 
 dotenv.config();
 
@@ -25,8 +28,8 @@ export /**
 const createCattle = async (
   cattle: ICattle,
   connection?: Sequelize
-): Promise<BasicResponse | undefined> => {
-  let response: BasicResponse | undefined;
+): Promise<CreateResult> => {
+  let response: CreateResult;
   try {
     const cattleModel = await cattleEntity(connection);
     const cattleExist = await cattleModel?.findOne({
@@ -38,8 +41,17 @@ const createCattle = async (
       response = { message: 'Cattle already exists', status: 400 };
     } else {
       await cattleModel?.create(cattle);
+      const cattleFind = await cattleModel?.findOne({
+        where: {
+          number: cattle?.number,
+        },
+        attributes: {
+          exclude: ['createdAt', 'updatedAt'],
+        },
+      });
       response = {
         message: `${cattle.register} Just register a Cattle with the number of ${cattle.number}, successfully`,
+        item: cattleFind,
         status: 201,
       };
     }

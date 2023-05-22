@@ -6,6 +6,11 @@ export interface BasicResponse {
   message: string;
   status: number;
 }
+export interface CattleResponse {
+  message: string;
+  item: Model<ICattle, ICattle> | null | undefined;
+  status: number;
+}
 
 //* Error JSON response for Controllers
 

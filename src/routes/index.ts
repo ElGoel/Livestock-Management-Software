@@ -6,24 +6,37 @@ import express from 'express';
 // import logger from '../utils/logger';
 import cattleRouter from './CattleRouter';
 import rootRouter from './RootRouter';
+import cors from 'cors';
 
 // Server Instance
 const app = express();
 
-// Router Instance
-// const rootRouter = express.Router();
-
 //* Activate for requests to http://localhost:8080/api/
 
+// TODO: Security Settings for URLs
+// const whiteList = ['http://localhost:5173'];
+// const corsOptions = {
+//   origin: whiteList,
+//   optionsSuccessStatus: 200,
+// };
+
+// const corsOptions = {
+//     origin: function (origin, callback) {
+//       if (whitelist.indexOf(origin) !== -1) {
+//         callback(null, true)
+//       } else {
+//         callback(new Error('Not allowed by CORS'))
+//       }
+//     }
+//  }
+
+app.use(cors());
+
 //* GET: http://localhost:8080/api/
-// rootRouter.get('/', (req: Request, res: Response) => {
-//   logger('All Right', 'info', 'app');
-//   res.send('Welcome');
-// });
 
 //* Redirection to Routers & Controllers
-app.use('/', rootRouter); // ? http://localhost:8080/api/
-app.use('/cattle', cattleRouter); // ? http://localhost:8080/api/cattle
+app.use('/', /* cors(corsOptions), */ rootRouter); // ? http://localhost:8080/api/
+app.use('/cattle', /* cors(corsOptions), */ cattleRouter); // ? http://localhost:8080/api/cattle
 
 //* Add more routes to the server
 

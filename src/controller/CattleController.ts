@@ -5,7 +5,10 @@ import { Route, Tags, Post, Get, Put, Delete } from 'tsoa';
 import { type BasicResponse, type ICattleController } from '../interfaces';
 import { type ICattle } from '../interfaces/cattle.interface';
 import { type Sequelize } from 'sequelize';
-import { type CattleResult } from '../types/PromiseTypeResponse';
+import {
+  type CreateResult,
+  type CattleResult,
+} from '../types/PromiseTypeResponse';
 
 // ? Utils Methods
 import logger from '../utils/logger';
@@ -33,21 +36,20 @@ export class CattleController implements ICattleController {
   public async createCattle(
     cattle: ICattle,
     connection?: Sequelize
-  ): Promise<BasicResponse | undefined> {
-    let response: BasicResponse | undefined;
-
+  ): Promise<CreateResult> {
     try {
       logger(
         `[/api/cattle] Creating New Cattle: ${cattle.number} Request`,
         'info',
         'users'
       );
-      response = await createCattle(cattle, connection);
+      const response = await createCattle(cattle, connection);
       logger(
         `[/api/cattle] Cattle: ${cattle.number} Created successfully`,
         'info',
         'users'
       );
+      return response;
     } catch (error) {
       if (error instanceof Error) {
         logger(
@@ -55,7 +57,6 @@ export class CattleController implements ICattleController {
         );
       }
     }
-    return response;
   }
 
   /**

@@ -7,9 +7,10 @@ export const validateCreateCattle = (
 ): Joi.ValidationResult<ICattle> => {
   const schema = Joi.object({
     number: Joi.number().min(3).required(),
-    race: Joi.number().max(11).required(),
+    breedId: Joi.number().min(1).required(),
     initWeight: Joi.number().precision(2).required(),
-    quarterlyWeight: Joi.number().precision(2).required(),
+    quarterlyWeight: Joi.number().greater(Joi.ref('initWeight')).precision(2),
+    ageGroup: Joi.number().min(1).max(4).required(),
     register: Joi.string()
       .pattern(/^([a-zA-ZáéíóúÁÉÍÓÚñÑ]+\s)*[a-zA-ZáéíóúÁÉÍÓÚñÑ]+$/)
       .required(),
@@ -23,9 +24,10 @@ export const validateUpdateCattle = (
 ): Joi.ValidationResult<unknown> => {
   const schema = Joi.object({
     number: Joi.number().min(3),
-    race: Joi.number().max(11).min(1),
+    breedId: Joi.number().min(1),
     initWeight: Joi.number().precision(2),
-    quarterlyWeight: Joi.number().precision(2),
+    quarterlyWeight: Joi.number().greater(Joi.ref('initWeight')).precision(2),
+    ageGroup: Joi.number().min(1).max(4),
     register: Joi.string()
       .max(255)
       .pattern(/^([a-zA-ZáéíóúÁÉÍÓÚñÑ]+\s)*[a-zA-ZáéíóúÁÉÍÓÚñÑ]+$/),

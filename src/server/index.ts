@@ -4,7 +4,6 @@ import express, { type Express, type Request, type Response } from 'express';
 import swaggerUi from 'swagger-ui-express';
 
 // ? Security
-import cors from 'cors';
 import helmet from 'helmet';
 
 // ? Router
@@ -46,7 +45,6 @@ app.use(express.static('public'));
 
 //* Security Config
 app.use(helmet());
-app.use(cors());
 
 //* Content type Config:
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));

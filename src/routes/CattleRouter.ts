@@ -16,7 +16,7 @@ import {
 
 // ? Interfaces & Types
 import { type ICattle } from '../interfaces/cattle.interface';
-import { type DataResponse, type BasicResponse } from '../interfaces';
+import { type DataResponse } from '../interfaces';
 
 // ? Libraries
 import _ from 'lodash';
@@ -28,6 +28,7 @@ import connectDb from '../middlewares/connectDb';
 import disconnectDb from '../middlewares/disconnectDb';
 import errorHandler from '../middlewares/errorHandler';
 import { type Sequelize } from 'sequelize';
+import { type CreateResult } from '../types/PromiseTypeResponse';
 
 // * get json from body;
 const jsonParser = bodyParser.json();
@@ -53,20 +54,24 @@ cattleRouter.post(
           const { message } = error.details[0];
           res.status(400).send(message);
           next(error);
+          return;
         }
         const cattleObj: ICattle = _.pick(req.body, [
           'id',
           'number',
-          'race',
+          'breedId',
           'initWeight',
           'quarterlyWeight',
+          'ageGroup',
           'register',
         ]);
         const controller: CattleController = new CattleController();
-        const response: BasicResponse | undefined =
-          await controller.createCattle(cattleObj, connection);
+        const response: CreateResult = await controller.createCattle(
+          cattleObj,
+          connection
+        );
         if (response !== undefined) {
-          res.status(response.status).send(response.message);
+          res.status(response.status).send(response);
         }
       })
       .catch(error => {
@@ -172,6 +177,7 @@ cattleRouter.put(
           const { message } = error.details[0];
           res.status(400).send(message);
           next(error);
+          return;
         }
         const controller: CattleController = new CattleController();
         const response = await controller.updateCattle(id, cattle, connection);

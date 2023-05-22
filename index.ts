@@ -21,8 +21,6 @@ app.listen(port, () => {
   logger(`[SERVER ON]: Listening on port ${port}`, 'trace', 'app');
 });
 
-// const port = process.env.PORT ?? 5000;
-
 //* Execute SERVER
 
 // app.listen(port, () => {

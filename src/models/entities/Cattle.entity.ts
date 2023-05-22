@@ -6,6 +6,7 @@ import {
 } from 'sequelize';
 import logger from '../../utils/logger';
 import { type ICattle } from '../../interfaces/cattle.interface';
+import { BreedEntity } from './Breed.entitity';
 
 export /**
  * Sequelize Model interface of the Table "Cattle"
@@ -16,13 +17,13 @@ export /**
 const cattleEntity = async (
   sequelize?: Sequelize
 ): Promise<ModelStatic<Model<ICattle>> | undefined> => {
-  const Cattle = sequelize?.define('Cattle', {
+  const Cattle = sequelize?.define<Model<ICattle>>('Cattle', {
     number: {
       type: DataTypes.INTEGER,
       allowNull: false,
       unique: true,
     },
-    race: {
+    breedId: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
@@ -32,6 +33,10 @@ const cattleEntity = async (
     },
     quarterlyWeight: {
       type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+    },
+    ageGroup: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     registerDate: {
@@ -47,14 +52,22 @@ const cattleEntity = async (
     },
   });
 
+  const breed = await BreedEntity(sequelize);
+
+  if (breed !== undefined) {
+    Cattle?.belongsTo(breed, { foreignKey: 'breedId' });
+  } else {
+    logger('the relation of the breed entity was not found', 'error', 'db');
+  }
+
   await Cattle?.sync()
     .then(() => {
-      logger('Table and model synced successfully');
+      logger('Table and model "Cattle" as synced successfully');
     })
     .catch(error => {
       if (error instanceof Error) {
         logger(
-          `Error syncing the table and model:${error.message}`,
+          `Error syncing the "Cattle" table and model:${error.message}`,
           'error',
           'db'
         );
