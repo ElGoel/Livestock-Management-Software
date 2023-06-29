@@ -1,5 +1,5 @@
 import { type Model } from 'sequelize';
-import { type ICattle } from './cattle.interface';
+import { type IBreed, type ICattle } from './cattle.interface';
 
 //* Basic JSON response for Controllers
 export interface BasicResponse {
@@ -8,7 +8,7 @@ export interface BasicResponse {
 }
 export interface CattleResponse {
   message: string;
-  item: Model<ICattle, ICattle> | null | undefined;
+  item: Model<ICattle | IBreed> | null | undefined;
   status: number;
 }
 
@@ -17,6 +17,6 @@ export interface CattleResponse {
 export interface DataResponse {
   totalPages: number;
   currentPage: number;
-  cattle: Array<Model<ICattle | ICattle>>;
+  data: Array<Model<ICattle | ICattle> | Model<IBreed | IBreed>>;
   error?: unknown;
 }

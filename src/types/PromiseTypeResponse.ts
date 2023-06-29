@@ -4,10 +4,11 @@ import {
   type DataResponse,
   type CattleResponse,
   type BasicResponse,
+  type IBreed,
 } from '../interfaces';
 
 export type CattleResult = Promise<
-  DataResponse | Model<ICattle, ICattle> | null | undefined | unknown
+  DataResponse | Model<IBreed | ICattle> | null | undefined | unknown
 >;
 
 export type CreateResult = CattleResponse | BasicResponse | undefined;

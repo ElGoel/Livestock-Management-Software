@@ -81,7 +81,7 @@ const getAllCattle = async (
   const response: DataResponse = {
     totalPages: 0,
     currentPage: 0,
-    cattle: [],
+    data: [],
   };
   try {
     const offset = limit * (page - 1);
@@ -93,7 +93,7 @@ const getAllCattle = async (
         offset,
       })
       .then((cattle: Array<Model<ICattle, ICattle>>) => {
-        response.cattle = cattle;
+        response.data = cattle;
       });
     await cattleModel?.count().then((total: number) => {
       response.totalPages = Math.ceil(total / limit);
@@ -105,7 +105,7 @@ const getAllCattle = async (
       response.error = error.message;
     }
   }
-  return response.cattle.length > 0 ? response : response.error;
+  return response.data.length > 0 ? response : response.error;
 };
 
 export /**
@@ -187,13 +187,20 @@ export /**
 const deleteCattleById = async (
   cattleId: number,
   connection?: Sequelize
-): Promise<{ cattleDestroy: boolean; cattleExist: boolean } | undefined> => {
+): Promise<
+  { cattleToEliminate: boolean; cattleExist: boolean } | undefined
+> => {
   try {
     const cattleModel = await cattleEntity(connection);
-    const cattleExist = (await cattleModel?.findByPk(cattleId)) !== null;
-    const cattleDestroy =
-      (await cattleModel?.destroy({ where: { id: cattleId } })) !== undefined;
-    return { cattleExist, cattleDestroy };
+    const cattleItem = await cattleModel?.findOne({ where: { id: cattleId } });
+    const cattleExist = cattleItem !== null && cattleItem !== undefined;
+    let cattleToEliminate = false;
+    if (cattleExist && 'isDelete' in cattleItem) {
+      cattleItem.isDelete = true;
+      await cattleItem.save();
+      cattleToEliminate = true;
+    }
+    return { cattleExist, cattleToEliminate };
   } catch (error) {
     if (error instanceof Error) {
       logger(

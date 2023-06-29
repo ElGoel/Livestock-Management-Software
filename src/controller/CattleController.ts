@@ -26,10 +26,54 @@ import {
 @Tags('CattleController')
 export class CattleController implements ICattleController {
   /**
+   * *This is a Method that uses an ORM called Sequelize to update or delete cattle data from a database.
+   * *It takes in an ID, and optionally the updated cattle data or a database connection.
+   * *The function checks if the cattle to be updated or deleted exists and returns a response with a status code and message indicating if the operation was successful or not.
+   * *It also logs any errors that occur during the process.
+   * @method deleteCattleById // ? Method ORM
+   * @param {number} id // ? id of the object to be deleted
+   * @param {Sequelize} [connection] // ? Connection to the database
+   * @return {Promise<BasicResponse | undefined>} // ? 400 response || 200 response
+   * @memberof CattleController
+   */
+  @Delete('/:id')
+  public async destroyCattle(
+    id: number,
+    connection?: Sequelize
+  ): Promise<BasicResponse | undefined> {
+    const response: BasicResponse | undefined = {
+      message: '',
+      status: 0,
+    };
+    try {
+      logger('[/api/cattle] Delete the Cattle: Request', 'info', 'users');
+      const result = await deleteCattleById(id, connection);
+      if (result?.cattleExist === false) {
+        response.status = 400;
+        response.message = `The Cattle provided was not found: ID = ${id}`;
+      } else if (result?.cattleToEliminate === false) {
+        response.status = 400;
+        response.message = `Unable to delete Cattle with the ID ${id}`;
+      } else {
+        response.status = 200;
+        response.message = `Cattle with the ID ${id} was delete successfully`;
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        logger(
+          `[CONTROLLER ERROR]: There is a problem when deleting a cattle: ${error.message}`
+        );
+      }
+      throw error;
+    }
+    return response;
+  }
+
+  /**
    * * EndPoint to create a new Cattle Entity into the table "Cattle" of the postgres database
    * @param {ICattle} cattle // ? receives a Validate Cattle object from the body of the POST request
    * @param {Sequelize | undefined} [connection] // ? Instance of the Sequelize Connection
-   * @return {BasicResponse | Model<ICattle>}
+   * @return {CreateResult}
    * @memberof CattleController
    */
   @Post('/')
@@ -144,50 +188,6 @@ export class CattleController implements ICattleController {
       if (error instanceof Error) {
         logger(
           `[CONTROLLER ERROR]: There is a problem when updating a cattle: ${error.message}`
-        );
-      }
-      throw error;
-    }
-    return response;
-  }
-
-  /**
-   * *This is a Method that uses an ORM called Sequelize to update or delete cattle data from a database.
-   * *It takes in an ID, and optionally the updated cattle data or a database connection.
-   * *The function checks if the cattle to be updated or deleted exists and returns a response with a status code and message indicating if the operation was successful or not.
-   * *It also logs any errors that occur during the process.
-   * @method deleteCattleById // ? Method ORM
-   * @param {number} id // ? id of the object to be deleted
-   * @param {Sequelize} [connection] // ? Connection to the database
-   * @return {Promise<BasicResponse | undefined>} // ? 400 response || 200 response
-   * @memberof CattleController
-   */
-  @Delete('/:id')
-  public async destroyCattle(
-    id: number,
-    connection?: Sequelize
-  ): Promise<BasicResponse | undefined> {
-    const response: BasicResponse | undefined = {
-      message: '',
-      status: 0,
-    };
-    try {
-      logger('[/api/cattle] Delete the Cattle: Request', 'info', 'users');
-      const result = await deleteCattleById(id, connection);
-      if (result?.cattleExist === false) {
-        response.status = 400;
-        response.message = `The Cattle provided was not found: ID = ${id}`;
-      } else if (result?.cattleDestroy === false) {
-        response.status = 400;
-        response.message = `Unable to delete Cattle with the ID ${id}`;
-      } else {
-        response.status = 200;
-        response.message = `Cattle with the ID ${id} was delete successfully`;
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        logger(
-          `[CONTROLLER ERROR]: There is a problem when deleting a cattle: ${error.message}`
         );
       }
       throw error;

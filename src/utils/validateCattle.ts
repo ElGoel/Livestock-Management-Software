@@ -10,7 +10,7 @@ export const validateCreateCattle = (
     breedId: Joi.number().min(1).required(),
     initWeight: Joi.number().precision(2).required(),
     quarterlyWeight: Joi.number().greater(Joi.ref('initWeight')).precision(2),
-    ageGroup: Joi.number().min(1).max(4).required(),
+    ageGroup: Joi.string().required(),
     register: Joi.string()
       .pattern(/^([a-zA-ZáéíóúÁÉÍÓÚñÑ]+\s)*[a-zA-ZáéíóúÁÉÍÓÚñÑ]+$/)
       .required(),

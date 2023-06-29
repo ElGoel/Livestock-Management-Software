@@ -6,7 +6,7 @@ import {
 } from 'sequelize';
 import logger from '../../utils/logger';
 import { type ICattle } from '../../interfaces/cattle.interface';
-import { BreedEntity } from './Breed.entitity';
+import { breedEntity } from './Breed.entity';
 
 export /**
  * Sequelize Model interface of the Table "Cattle"
@@ -36,7 +36,7 @@ const cattleEntity = async (
       allowNull: true,
     },
     ageGroup: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: false,
     },
     registerDate: {
@@ -50,9 +50,14 @@ const cattleEntity = async (
       type: DataTypes.STRING(255),
       allowNull: false,
     },
+    isDelete: {
+      type: DataTypes.BOOLEAN(),
+      defaultValue: false,
+      allowNull: false,
+    },
   });
 
-  const breed = await BreedEntity(sequelize);
+  const breed = await breedEntity(sequelize);
 
   if (breed !== undefined) {
     Cattle?.belongsTo(breed, { foreignKey: 'breedId' });

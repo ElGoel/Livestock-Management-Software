@@ -5,6 +5,7 @@
 import express from 'express';
 // import logger from '../utils/logger';
 import cattleRouter from './CattleRouter';
+import breedRouter from './BreedRouter';
 import rootRouter from './RootRouter';
 import cors from 'cors';
 
@@ -37,6 +38,7 @@ app.use(cors());
 //* Redirection to Routers & Controllers
 app.use('/', /* cors(corsOptions), */ rootRouter); // ? http://localhost:8080/api/
 app.use('/cattle', /* cors(corsOptions), */ cattleRouter); // ? http://localhost:8080/api/cattle
+app.use('/breed', /* cors(corsOptions), */ breedRouter); // ? http://localhost:8080/api/breed
 
 //* Add more routes to the server
 

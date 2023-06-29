@@ -4,19 +4,19 @@ import express, {
   type Response,
 } from 'express';
 
-// ? Controllers
-import { CattleController } from '../controller/CattleController';
+// ? Controller
+import { BreedController } from '../controller/BreedController';
 
 // ? Utils Methods
 import logger from '../utils/logger';
+import { generateCodeFromName } from '../utils/generateCode';
 import {
-  validateCreateCattle,
+  validateCreateBreed,
   validateUpdateCattle,
-} from '../utils/validateCattle';
+} from '../utils/validateBreed';
 
 // ? Interfaces & Types
-import { type ICattle } from '../interfaces/cattle.interface';
-import { type DataResponse } from '../interfaces';
+import { type IBreed, type DataResponse } from '../interfaces';
 
 // ? Libraries
 import _ from 'lodash';
@@ -33,13 +33,13 @@ import { type CreateResult } from '../types/PromiseTypeResponse';
 // * get json from body;
 const jsonParser = bodyParser.json();
 
-const cattleRouter = express.Router();
+const breedRouter = express.Router();
 
 /**
  * Cattle EndPoint:
- * * http://localhost:5000/api/cattle
+ * * http://localhost:5000/api/breed
  */
-cattleRouter.post(
+breedRouter.post(
   '/',
   jsonParser,
   errorHandler,
@@ -48,30 +48,30 @@ cattleRouter.post(
     connectDb()
       .then(async (sequelize?: Sequelize) => {
         connection = sequelize;
-        const { error } = validateCreateCattle(req.body);
+        const { error } = validateCreateBreed(req.body);
         if (error !== undefined) {
-          console.log(error);
+          console.error(error);
           const { message } = error.details[0];
           res.status(400).send(message);
           next(error);
-          return;
-        }
-        const cattleObj: ICattle = _.pick(req.body, [
-          'id',
-          'number',
-          'breedId',
-          'initWeight',
-          'quarterlyWeight',
-          'ageGroup',
-          'register',
-        ]);
-        const controller: CattleController = new CattleController();
-        const response: CreateResult = await controller.createCattle(
-          cattleObj,
-          connection
-        );
-        if (response !== undefined) {
-          res.status(response.status).send(response);
+        } else {
+          const breedObj: IBreed = _.pick(req.body, [
+            'origin',
+            'name',
+            'production',
+          ]);
+          const modifiedBreedObj = _.defaults(breedObj, {
+            isEditable: true,
+            code: generateCodeFromName(breedObj.name),
+          });
+          const controller: BreedController = new BreedController();
+          const response: CreateResult = await controller.createBreed(
+            modifiedBreedObj,
+            connection
+          );
+          if (response !== undefined) {
+            res.status(response.status).send(response);
+          }
         }
       })
       .catch(error => {
@@ -86,7 +86,7 @@ cattleRouter.post(
   })
 );
 
-cattleRouter.get(
+breedRouter.get(
   '/',
   errorHandler,
   asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
@@ -103,9 +103,9 @@ cattleRouter.get(
           parseLimit = parseInt(limit);
           parsePage = parseInt(page);
         }
-        const controller: CattleController = new CattleController();
+        const controller: BreedController = new BreedController();
         const response: DataResponse | unknown | undefined =
-          await controller.getCattle(parsePage, parseLimit, connection);
+          await controller.getBreed(parsePage, parseLimit, connection);
         res.status(200).send(response);
       })
       .catch(error => {
@@ -120,7 +120,7 @@ cattleRouter.get(
   })
 );
 
-cattleRouter.get(
+breedRouter.get(
   '/:id',
   errorHandler,
   asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
@@ -128,14 +128,21 @@ cattleRouter.get(
     connectDb()
       .then(async sequelize => {
         connection = sequelize;
-        const number = parseInt(req.params.id);
-        const controller: CattleController = new CattleController();
-        const response = await controller.getCattleById(number, connection);
+        let query: string | number | undefined;
+        if (!isNaN(parseInt(req.params.id))) {
+          query = parseInt(req.params.id);
+        } else {
+          query = req.params.id;
+        }
+        const controller: BreedController = new BreedController();
+        const response = await controller.getBreedById(query, connection);
 
         if (response !== null) {
           res.status(200).send(response);
         } else {
-          res.status(404).send(`The cattle with ID: ${number} does not exist`);
+          res
+            .status(404)
+            .send(`The breed with ID or Name: ${query} does not exist`);
         }
       })
       .catch(error => {
@@ -150,7 +157,7 @@ cattleRouter.get(
   })
 );
 
-cattleRouter.put(
+breedRouter.put(
   '/:id',
   jsonParser,
   errorHandler,
@@ -160,8 +167,13 @@ cattleRouter.put(
       .then(async sequelize => {
         connection = sequelize;
         const id = parseInt(req.params.id);
-        const cattle: ICattle = req.body;
-        if (_.isEmpty(cattle)) {
+        const breed: IBreed = {
+          code: generateCodeFromName(req.body.name),
+          origin: req.body.origin,
+          name: req.body.name,
+          production: req.body.production,
+        };
+        if (_.isEmpty(breed)) {
           res
             .status(400)
             .send(
@@ -173,14 +185,14 @@ cattleRouter.put(
         }
         const { error } = validateUpdateCattle(req.body);
         if (error !== undefined) {
-          console.log(error);
+          console.error(error);
           const { message } = error.details[0];
           res.status(400).send(message);
           next(error);
           return;
         }
-        const controller: CattleController = new CattleController();
-        const response = await controller.updateCattle(id, cattle, connection);
+        const controller: BreedController = new BreedController();
+        const response = await controller.updateBreed(id, breed, connection);
         if (response !== undefined) {
           res.status(response.status).send(response.message);
         } else {
@@ -199,7 +211,7 @@ cattleRouter.put(
   })
 );
 
-cattleRouter.delete(
+breedRouter.delete(
   '/:id',
   errorHandler,
   asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
@@ -208,8 +220,8 @@ cattleRouter.delete(
       .then(async sequelize => {
         connection = sequelize;
         const id = parseInt(req.params.id);
-        const controller: CattleController = new CattleController();
-        const response = await controller.destroyCattle(id, connection);
+        const controller: BreedController = new BreedController();
+        const response = await controller.destroyBreed(id, connection);
         if (response !== undefined) {
           console.log(response);
           res.status(response.status).send(response.message);
@@ -230,4 +242,4 @@ cattleRouter.delete(
   })
 );
 
-export default cattleRouter;
+export default breedRouter;

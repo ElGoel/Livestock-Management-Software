@@ -13,10 +13,14 @@ export /**
  * @param sequelize // ? the connection to the database
  * @return {Promise<ModelStatic<Model<IBreed>>>}
  */
-const BreedEntity = async (
+const breedEntity = async (
   sequelize?: Sequelize
 ): Promise<ModelStatic<Model<IBreed, IBreed>> | undefined> => {
   const Breed = sequelize?.define<Model<IBreed>>('Breed', {
+    code: {
+      type: DataTypes.STRING(2),
+      allowNull: true,
+    },
     origin: {
       type: DataTypes.STRING(225),
       allowNull: false,
@@ -28,6 +32,16 @@ const BreedEntity = async (
     },
     production: {
       type: DataTypes.STRING(225),
+      allowNull: false,
+    },
+    isEditable: {
+      type: DataTypes.BOOLEAN(),
+      defaultValue: false,
+      allowNull: false,
+    },
+    isDelete: {
+      type: DataTypes.BOOLEAN(),
+      defaultValue: false,
       allowNull: false,
     },
   });
