@@ -7,6 +7,7 @@ import {
 import logger from '../../utils/logger';
 import { type ICattle } from '../../interfaces/cattle.interface';
 import { breedEntity } from './Breed.entity';
+import { lotsEntity } from './Lots.entity';
 
 export /**
  * Sequelize Model interface of the Table "Cattle"
@@ -17,55 +18,72 @@ export /**
 const cattleEntity = async (
   sequelize?: Sequelize
 ): Promise<ModelStatic<Model<ICattle>> | undefined> => {
-  const Cattle = sequelize?.define<Model<ICattle>>('Cattle', {
-    number: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      unique: true,
-    },
-    breedId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    initWeight: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-    },
-    quarterlyWeight: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: true,
-    },
-    ageGroup: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-    },
-    registerDate: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-      validate: {
-        isDate: true,
+  const Cattle = sequelize?.define<Model<ICattle>>(
+    'Cattle',
+    {
+      number: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        unique: true,
+      },
+      initWeight: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+      },
+      quarterlyWeight: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: true,
+      },
+      ageGroup: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+      },
+      registerDate: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+        validate: {
+          isDate: true,
+        },
+      },
+      register: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+      },
+      isDelete: {
+        type: DataTypes.BOOLEAN(),
+        defaultValue: false,
+        allowNull: false,
       },
     },
-    register: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-    },
-    isDelete: {
-      type: DataTypes.BOOLEAN(),
-      defaultValue: false,
-      allowNull: false,
-    },
-  });
+    { timestamps: false }
+  );
 
-  const breed = await breedEntity(sequelize);
+  const breedModel = await breedEntity(sequelize);
+  const lotsModel = await lotsEntity(sequelize);
 
-  if (breed !== undefined) {
-    Cattle?.belongsTo(breed, { foreignKey: 'breedId' });
+  if (Cattle !== undefined && breedModel !== undefined) {
+    breedModel.hasMany(Cattle);
+    Cattle.belongsTo(breedModel);
   } else {
     logger('the relation of the breed entity was not found', 'error', 'db');
   }
 
-  await Cattle?.sync()
+  if (lotsModel !== undefined && Cattle !== undefined) {
+    lotsModel?.hasMany(Cattle);
+    Cattle.belongsTo(lotsModel);
+  } else {
+    logger('the relation of the lots entity was not found', 'error', 'db');
+  }
+
+  // TODO: relation and sync the production table, one cow has many products
+
+  Cattle?.afterCreate(async (cattle, options) => {
+    const lotId = cattle.dataValues.LotId;
+    const totalCattle = await Cattle.count({ where: { LotId: lotId } });
+    await lotsModel?.update({ totalCattle }, { where: { id: lotId } });
+  });
+
+  await Cattle?.sync({ alter: true })
     .then(() => {
       logger('Table and model "Cattle" as synced successfully');
     })

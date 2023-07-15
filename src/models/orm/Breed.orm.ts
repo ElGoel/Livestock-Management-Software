@@ -28,8 +28,8 @@ export /**
 const createBreed = async (
   breed: IBreed,
   connection?: Sequelize
-): Promise<CreateResult> => {
-  let response: CreateResult;
+): Promise<CreateResult<IBreed>> => {
+  let response: CreateResult<IBreed>;
   try {
     const breedModel = await breedEntity(connection);
     const breedExist = await breedModel?.findOne({
@@ -77,11 +77,11 @@ const getAllBreed = async (
   page: number,
   limit: number,
   connection?: Sequelize
-): Promise<DataResponse | undefined | unknown> => {
-  const response: DataResponse = {
+): Promise<DataResponse<IBreed> | undefined | unknown> => {
+  const response: DataResponse<IBreed> = {
     totalPages: 0,
     currentPage: 0,
-    data: [],
+    item: [],
   };
   try {
     const offset = limit * (page - 1);
@@ -95,7 +95,7 @@ const getAllBreed = async (
         offset,
       })
       .then((breed: Array<Model<IBreed, IBreed>>) => {
-        response.data = breed;
+        response.item = breed;
       });
     await breedModel?.count().then((total: number) => {
       response.totalPages = Math.ceil(total / limit);
@@ -107,7 +107,7 @@ const getAllBreed = async (
       response.error = error.message;
     }
   }
-  return response.data.length > 0 ? response : response.error;
+  return response.item.length > 0 ? response : response.error;
 };
 
 export /**
@@ -119,10 +119,9 @@ export /**
  * @return {breedResult} // ? DataResponse | Model<IBreed, IBreed> | null | undefined | unknown
  */
 const getBreedByIdOrNumber = async (
-  query?: number | string | undefined,
-  connection?: Sequelize
-): CattleResult => {
-  console.log('NUMERO QUERY:', typeof query);
+  connection?: Sequelize,
+  query?: number | string | undefined
+): CattleResult<IBreed> => {
   try {
     const breedModel = await breedEntity(connection);
     const response = await breedModel?.findOne({

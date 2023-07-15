@@ -5,18 +5,21 @@ import express, {
 } from 'express';
 
 // ? Controller
-import { BreedController } from '../controller/BreedController';
+import { LotsController } from '../controller/LotsController';
 
 // ? Utils Methods
 import logger from '../utils/logger';
-import { generateCodeFromName } from '../utils/generateCode';
 import {
-  validateCreateBreed,
-  validateUpdateCattle,
-} from '../utils/validations/validateBreed';
+  validateCreateLots /* , validateUpdateLots */,
+  validateUpdateLots,
+} from '../utils/validations/validateLots';
 
 // ? Interfaces & Types
-import { type IBreed, type DataResponse } from '../interfaces';
+import {
+  type IProducts,
+  type DataResponse,
+  type ILots /* , type DataResponse */,
+} from '../interfaces';
 
 // ? Libraries
 import _ from 'lodash';
@@ -33,35 +36,38 @@ import { type CreateResult } from '../types/PromiseTypeResponse';
 // * get json from body;
 const jsonParser = bodyParser.json();
 
-const breedRouter = express.Router();
+const lotsRouter = express.Router();
 
 /**
- * Breed EndPoint:
- * * http://localhost:5000/api/breed
+ * Lots EndPoint:
+ * * http://localhost:5000/api/lots
  */
-breedRouter.post(
+
+lotsRouter.post(
   '/',
   jsonParser,
   errorHandler,
   asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
     let connection: Sequelize | undefined;
     connectDb()
-      .then(async (sequelize: Sequelize | undefined) => {
+      .then(async (sequelize?: Sequelize) => {
         connection = sequelize;
-        const { error } = validateCreateBreed(req.body);
+        const { error } = validateCreateLots(req.body);
         if (error !== undefined) {
           console.error(error);
           const { message } = error.details[0];
           res.status(400).send(message);
           next(error);
         } else {
-          const breedObj = _.pick(req.body, ['origin', 'name', 'production']);
-          const modifiedBreedObj = _.defaults(breedObj, {
-            code: generateCodeFromName(breedObj.name),
-          });
-          const controller: BreedController = new BreedController();
-          const response: CreateResult<IBreed> = await controller.createBreed(
-            modifiedBreedObj,
+          const lotsObj = _.pick(req.body, [
+            'name',
+            'supplier',
+            'receiveDate',
+            'register',
+          ]);
+          const controller: LotsController = new LotsController();
+          const response: CreateResult<IProducts> = await controller.createLot(
+            lotsObj,
             connection
           );
           if (response !== undefined) {
@@ -81,7 +87,7 @@ breedRouter.post(
   })
 );
 
-breedRouter.get(
+lotsRouter.get(
   '/',
   errorHandler,
   asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
@@ -98,9 +104,9 @@ breedRouter.get(
           parseLimit = parseInt(limit);
           parsePage = parseInt(page);
         }
-        const controller: BreedController = new BreedController();
-        const response: DataResponse<IBreed> | unknown | undefined =
-          await controller.getBreed(parsePage, parseLimit, connection);
+        const controller: LotsController = new LotsController();
+        const response: DataResponse<ILots> | unknown | undefined =
+          await controller.getLots(parsePage, parseLimit, connection);
         res.status(200).send(response);
       })
       .catch(error => {
@@ -115,7 +121,7 @@ breedRouter.get(
   })
 );
 
-breedRouter.get(
+lotsRouter.get(
   '/:id',
   errorHandler,
   asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
@@ -123,21 +129,14 @@ breedRouter.get(
     connectDb()
       .then(async sequelize => {
         connection = sequelize;
-        let query: string | number | undefined;
-        if (!isNaN(parseInt(req.params.id))) {
-          query = parseInt(req.params.id);
-        } else {
-          query = req.params.id;
-        }
-        const controller: BreedController = new BreedController();
-        const response = await controller.getBreedById(connection, query);
+        const number = parseInt(req.params.id);
+        const controller: LotsController = new LotsController();
+        const response = await controller.getLotById(number, connection);
 
         if (response !== null) {
           res.status(200).send(response);
         } else {
-          res
-            .status(404)
-            .send(`The breed with ID or Name: ${query} does not exist`);
+          res.status(404).send(`The lot with ID: ${number} does not exist`);
         }
       })
       .catch(error => {
@@ -152,7 +151,7 @@ breedRouter.get(
   })
 );
 
-breedRouter.put(
+lotsRouter.put(
   '/:id',
   jsonParser,
   errorHandler,
@@ -162,13 +161,8 @@ breedRouter.put(
       .then(async sequelize => {
         connection = sequelize;
         const id = parseInt(req.params.id);
-        const breed: IBreed = {
-          code: generateCodeFromName(req.body.name),
-          origin: req.body.origin,
-          name: req.body.name,
-          production: req.body.production,
-        };
-        if (_.isEmpty(breed)) {
+        const lot: ILots = req.body;
+        if (_.isEmpty(lot)) {
           res
             .status(400)
             .send(
@@ -178,16 +172,16 @@ breedRouter.put(
             'at least one filled field is needed to be able to update the entity'
           );
         }
-        const { error } = validateUpdateCattle(req.body);
+        const { error } = validateUpdateLots(req.body);
         if (error !== undefined) {
-          console.error(error);
+          console.log(error);
           const { message } = error.details[0];
           res.status(400).send(message);
           next(error);
           return;
         }
-        const controller: BreedController = new BreedController();
-        const response = await controller.updateBreed(id, breed, connection);
+        const controller: LotsController = new LotsController();
+        const response = await controller.updateLot(id, lot, connection);
         if (response !== undefined) {
           res.status(response.status).send(response.message);
         } else {
@@ -206,7 +200,7 @@ breedRouter.put(
   })
 );
 
-breedRouter.delete(
+lotsRouter.delete(
   '/:id',
   errorHandler,
   asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
@@ -215,8 +209,8 @@ breedRouter.delete(
       .then(async sequelize => {
         connection = sequelize;
         const id = parseInt(req.params.id);
-        const controller: BreedController = new BreedController();
-        const response = await controller.destroyBreed(id, connection);
+        const controller: LotsController = new LotsController();
+        const response = await controller.destroyLot(id, connection);
         if (response !== undefined) {
           console.log(response);
           res.status(response.status).send(response.message);
@@ -237,4 +231,35 @@ breedRouter.delete(
   })
 );
 
-export default breedRouter;
+lotsRouter.post(
+  '/cattle',
+  jsonParser,
+  errorHandler,
+  asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
+    let connection: Sequelize | undefined;
+    connectDb()
+      .then(async sequelize => {
+        connection = sequelize;
+        const id: number = req.body.id;
+        const controller: LotsController = new LotsController();
+        const response = await controller.getLotsCattle(id, connection);
+
+        if (response !== null) {
+          res.status(200).send(response);
+        } else {
+          res.status(404).send(`The lot's ID: ${id} does not exist`);
+        }
+      })
+      .catch(error => {
+        if (error instanceof Error && error !== undefined) {
+          logger(`[ROUTER ERROR]:${error.message}`, 'error', 'db');
+          next(error);
+        }
+      })
+      .finally(async () => {
+        await disconnectDb(connection);
+      });
+  })
+);
+
+export default lotsRouter;

@@ -4,19 +4,20 @@ import express, {
   type Response,
 } from 'express';
 
-// ? Controller
-import { BreedController } from '../controller/BreedController';
+// ? Controllers
+import { ProductsController } from '../controller/ProductsController';
 
 // ? Utils Methods
 import logger from '../utils/logger';
-import { generateCodeFromName } from '../utils/generateCode';
 import {
-  validateCreateBreed,
-  validateUpdateCattle,
-} from '../utils/validations/validateBreed';
+  validateCreateProducts,
+  validateUpdateProducts,
+} from '../utils/validations/ValidateProducts';
 
 // ? Interfaces & Types
-import { type IBreed, type DataResponse } from '../interfaces';
+import { type Sequelize } from 'sequelize';
+import { type CreateResult } from '../types/PromiseTypeResponse';
+import { type DataResponse, type IProducts } from '../interfaces';
 
 // ? Libraries
 import _ from 'lodash';
@@ -27,46 +28,45 @@ import asyncMiddleware from '../middlewares/async';
 import connectDb from '../middlewares/connectDb';
 import disconnectDb from '../middlewares/disconnectDb';
 import errorHandler from '../middlewares/errorHandler';
-import { type Sequelize } from 'sequelize';
-import { type CreateResult } from '../types/PromiseTypeResponse';
 
 // * get json from body;
 const jsonParser = bodyParser.json();
 
-const breedRouter = express.Router();
+const productsRouter = express.Router();
 
 /**
- * Breed EndPoint:
- * * http://localhost:5000/api/breed
+ * Products EndPoint:
+ * * http://localhost:5000/api/products
  */
-breedRouter.post(
+productsRouter.post(
   '/',
   jsonParser,
   errorHandler,
   asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
     let connection: Sequelize | undefined;
     connectDb()
-      .then(async (sequelize: Sequelize | undefined) => {
+      .then(async (sequelize?: Sequelize) => {
         connection = sequelize;
-        const { error } = validateCreateBreed(req.body);
+        const { error } = validateCreateProducts(req.body);
         if (error !== undefined) {
-          console.error(error);
+          console.log(error);
           const { message } = error.details[0];
           res.status(400).send(message);
           next(error);
+          return;
+        }
+        const productsObj = _.pick(req.body, [
+          'CattleId',
+          'totalMilk',
+          'notes',
+        ]);
+        const controller: ProductsController = new ProductsController();
+        const response: CreateResult<IProducts> =
+          await controller.createProduct(productsObj, connection);
+        if (response !== undefined) {
+          res.status(response.status).send(response);
         } else {
-          const breedObj = _.pick(req.body, ['origin', 'name', 'production']);
-          const modifiedBreedObj = _.defaults(breedObj, {
-            code: generateCodeFromName(breedObj.name),
-          });
-          const controller: BreedController = new BreedController();
-          const response: CreateResult<IBreed> = await controller.createBreed(
-            modifiedBreedObj,
-            connection
-          );
-          if (response !== undefined) {
-            res.status(response.status).send(response);
-          }
+          res.status(400).send('something went wrong');
         }
       })
       .catch(error => {
@@ -81,7 +81,7 @@ breedRouter.post(
   })
 );
 
-breedRouter.get(
+productsRouter.get(
   '/',
   errorHandler,
   asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
@@ -98,9 +98,9 @@ breedRouter.get(
           parseLimit = parseInt(limit);
           parsePage = parseInt(page);
         }
-        const controller: BreedController = new BreedController();
-        const response: DataResponse<IBreed> | unknown | undefined =
-          await controller.getBreed(parsePage, parseLimit, connection);
+        const controller: ProductsController = new ProductsController();
+        const response: DataResponse<IProducts> | unknown | undefined =
+          await controller.getProducts(parsePage, parseLimit, connection);
         res.status(200).send(response);
       })
       .catch(error => {
@@ -115,7 +115,7 @@ breedRouter.get(
   })
 );
 
-breedRouter.get(
+productsRouter.get(
   '/:id',
   errorHandler,
   asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
@@ -123,21 +123,14 @@ breedRouter.get(
     connectDb()
       .then(async sequelize => {
         connection = sequelize;
-        let query: string | number | undefined;
-        if (!isNaN(parseInt(req.params.id))) {
-          query = parseInt(req.params.id);
-        } else {
-          query = req.params.id;
-        }
-        const controller: BreedController = new BreedController();
-        const response = await controller.getBreedById(connection, query);
+        const number = parseInt(req.params.id);
+        const controller: ProductsController = new ProductsController();
+        const response = await controller.getProductById(connection, number);
 
         if (response !== null) {
           res.status(200).send(response);
         } else {
-          res
-            .status(404)
-            .send(`The breed with ID or Name: ${query} does not exist`);
+          res.status(404).send(`The Product with ID: ${number} does not exist`);
         }
       })
       .catch(error => {
@@ -152,7 +145,7 @@ breedRouter.get(
   })
 );
 
-breedRouter.put(
+productsRouter.put(
   '/:id',
   jsonParser,
   errorHandler,
@@ -162,13 +155,8 @@ breedRouter.put(
       .then(async sequelize => {
         connection = sequelize;
         const id = parseInt(req.params.id);
-        const breed: IBreed = {
-          code: generateCodeFromName(req.body.name),
-          origin: req.body.origin,
-          name: req.body.name,
-          production: req.body.production,
-        };
-        if (_.isEmpty(breed)) {
+        const product: IProducts = req.body;
+        if (_.isEmpty(product)) {
           res
             .status(400)
             .send(
@@ -178,16 +166,20 @@ breedRouter.put(
             'at least one filled field is needed to be able to update the entity'
           );
         }
-        const { error } = validateUpdateCattle(req.body);
+        const { error } = validateUpdateProducts(req.body);
         if (error !== undefined) {
-          console.error(error);
+          console.log(error);
           const { message } = error.details[0];
           res.status(400).send(message);
           next(error);
           return;
         }
-        const controller: BreedController = new BreedController();
-        const response = await controller.updateBreed(id, breed, connection);
+        const controller: ProductsController = new ProductsController();
+        const response = await controller.updateProduct(
+          id,
+          product,
+          connection
+        );
         if (response !== undefined) {
           res.status(response.status).send(response.message);
         } else {
@@ -206,7 +198,7 @@ breedRouter.put(
   })
 );
 
-breedRouter.delete(
+productsRouter.delete(
   '/:id',
   errorHandler,
   asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
@@ -215,8 +207,8 @@ breedRouter.delete(
       .then(async sequelize => {
         connection = sequelize;
         const id = parseInt(req.params.id);
-        const controller: BreedController = new BreedController();
-        const response = await controller.destroyBreed(id, connection);
+        const controller: ProductsController = new ProductsController();
+        const response = await controller.destroyProduct(id, connection);
         if (response !== undefined) {
           console.log(response);
           res.status(response.status).send(response.message);
@@ -237,4 +229,4 @@ breedRouter.delete(
   })
 );
 
-export default breedRouter;
+export default productsRouter;

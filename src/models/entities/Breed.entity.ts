@@ -35,12 +35,12 @@ const breedEntity = async (
       allowNull: false,
     },
     isEditable: {
-      type: DataTypes.BOOLEAN(),
+      type: DataTypes.BOOLEAN,
       defaultValue: false,
       allowNull: false,
     },
     isDelete: {
-      type: DataTypes.BOOLEAN(),
+      type: DataTypes.BOOLEAN,
       defaultValue: false,
       allowNull: false,
     },

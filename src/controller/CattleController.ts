@@ -24,7 +24,7 @@ import {
 
 @Route('/api/cattle')
 @Tags('CattleController')
-export class CattleController implements ICattleController {
+export class CattleController implements ICattleController<ICattle> {
   /**
    * *This is a Method that uses an ORM called Sequelize to update or delete cattle data from a database.
    * *It takes in an ID, and optionally the updated cattle data or a database connection.
@@ -80,7 +80,7 @@ export class CattleController implements ICattleController {
   public async createCattle(
     cattle: ICattle,
     connection?: Sequelize
-  ): Promise<CreateResult> {
+  ): Promise<CreateResult<ICattle>> {
     try {
       logger(
         `[/api/cattle] Creating New Cattle: ${cattle.number} Request`,
@@ -118,7 +118,7 @@ export class CattleController implements ICattleController {
     page: number,
     limit: number,
     connection?: Sequelize
-  ): CattleResult {
+  ): CattleResult<ICattle> {
     logger('[/api/cattle] GET All Cattle Request');
 
     return await getAllCattle(page, limit, connection);
@@ -136,7 +136,7 @@ export class CattleController implements ICattleController {
   public async getCattleById(
     number?: number,
     connection?: Sequelize
-  ): CattleResult {
+  ): CattleResult<ICattle> {
     if (number !== undefined) {
       logger(
         `[/api/cattle/:id] GET Cattle by ID ${number} Request`,

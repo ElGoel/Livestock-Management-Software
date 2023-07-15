@@ -24,13 +24,13 @@ import {
 
 @Route('/api/Breed')
 @Tags('BreedController')
-export class BreedController implements IBreedController {
+export class BreedController implements IBreedController<IBreed> {
   @Get('/')
   public async getBreed(
     page: number,
     limit: number,
     connection?: Sequelize
-  ): CattleResult {
+  ): CattleResult<IBreed> {
     logger('[/api/breed] GET All Cattle Request');
 
     return await getAllBreed(page, limit, connection);
@@ -39,17 +39,17 @@ export class BreedController implements IBreedController {
   @Post('/')
   public async createBreed(
     breed: IBreed,
-    connection: Sequelize | undefined
-  ): Promise<CreateResult> {
+    connection?: Sequelize
+  ): Promise<CreateResult<IBreed>> {
     try {
       logger(
-        `[/api/cattle/breed] Creating a New Breed: ${breed.name} Request`,
+        `[/api/breed] Creating a New Breed: ${breed.name} Request`,
         'info',
         'users'
       );
       const response = await createBreed(breed, connection);
       logger(
-        `[/api/cattle/breed] Breed: ${breed.name} Created successfully`,
+        `[/api/breed] Breed: ${breed.name} Created successfully`,
         'info',
         'users'
       );
@@ -65,18 +65,18 @@ export class BreedController implements IBreedController {
 
   @Get('/:id')
   public async getBreedById(
-    query?: number | string | undefined,
-    connection?: Sequelize | undefined
-  ): CattleResult {
+    connection?: Sequelize,
+    query?: number | string | undefined
+  ): CattleResult<IBreed> {
     if (query !== undefined) {
       logger(
-        `[/api/cattle/:id] GET Cattle by ID ${query ?? ''} Request`,
+        `[/api/breed/:id] GET breed by ID ${query ?? ''} Request`,
         'info',
         'users'
       );
-      return await getBreedByIdOrNumber(query, connection);
+      return await getBreedByIdOrNumber(connection, query);
     } else {
-      logger('[/api/cattle/:id] Error getting the Breed', 'error', 'users');
+      logger('[/api/breed/:id] Error getting the Breed', 'error', 'users');
     }
   }
 
@@ -115,7 +115,7 @@ export class BreedController implements IBreedController {
   }
 
   @Delete('/:id')
-  async destroyBreed(
+  public async destroyBreed(
     id: number,
     connection?: Sequelize | undefined
   ): Promise<BasicResponse | undefined> {
@@ -124,7 +124,7 @@ export class BreedController implements IBreedController {
       status: 0,
     };
     try {
-      logger('[/api/cattle/breed] Delete the Breed: Request', 'info', 'users');
+      logger('[/api/breed] Delete the Breed: Request', 'info', 'users');
       const result = await deleteBreedById(id, connection);
       if (result?.breedExist === false) {
         response.status = 400;

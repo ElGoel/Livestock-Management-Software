@@ -1,4 +1,4 @@
-import { type IBreed } from '../interfaces/cattle.interface';
+import { type IBreed } from '../../interfaces/cattle.interface';
 
 import Joi from 'joi';
 

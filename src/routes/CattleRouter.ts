@@ -12,7 +12,7 @@ import logger from '../utils/logger';
 import {
   validateCreateCattle,
   validateUpdateCattle,
-} from '../utils/validateCattle';
+} from '../utils/validations/validateCattle';
 
 // ? Interfaces & Types
 import { type ICattle } from '../interfaces/cattle.interface';
@@ -56,17 +56,18 @@ cattleRouter.post(
           next(error);
           return;
         }
-        const cattleObj: ICattle = _.pick(req.body, [
+        const cattleObj = _.pick(req.body, [
           'id',
           'number',
-          'breedId',
+          'BreedId',
+          'LotId',
           'initWeight',
           'quarterlyWeight',
           'ageGroup',
           'register',
         ]);
         const controller: CattleController = new CattleController();
-        const response: CreateResult = await controller.createCattle(
+        const response: CreateResult<ICattle> = await controller.createCattle(
           cattleObj,
           connection
         );
@@ -104,7 +105,7 @@ cattleRouter.get(
           parsePage = parseInt(page);
         }
         const controller: CattleController = new CattleController();
-        const response: DataResponse | unknown | undefined =
+        const response: DataResponse<ICattle> | unknown | undefined =
           await controller.getCattle(parsePage, parseLimit, connection);
         res.status(200).send(response);
       })

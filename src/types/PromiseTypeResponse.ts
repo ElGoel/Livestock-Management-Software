@@ -1,14 +1,16 @@
 import { type Model } from 'sequelize';
 import {
-  type ICattle,
   type DataResponse,
   type CattleResponse,
   type BasicResponse,
-  type IBreed,
 } from '../interfaces';
+import { type IDataItems } from './dataTypes';
 
-export type CattleResult = Promise<
-  DataResponse | Model<IBreed | ICattle> | null | undefined | unknown
+export type CattleResult<T extends IDataItems> = Promise<
+  DataResponse<T> | Model<T> | null | undefined | unknown
 >;
 
-export type CreateResult = CattleResponse | BasicResponse | undefined;
+export type CreateResult<T extends IDataItems> =
+  | CattleResponse<T>
+  | BasicResponse
+  | undefined;

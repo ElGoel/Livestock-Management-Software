@@ -8,6 +8,8 @@ import cattleRouter from './CattleRouter';
 import breedRouter from './BreedRouter';
 import rootRouter from './RootRouter';
 import cors from 'cors';
+import lotsRouter from './LotsRouter';
+import productsRouter from './ProductsRouter';
 
 // Server Instance
 const app = express();
@@ -39,6 +41,8 @@ app.use(cors());
 app.use('/', /* cors(corsOptions), */ rootRouter); // ? http://localhost:8080/api/
 app.use('/cattle', /* cors(corsOptions), */ cattleRouter); // ? http://localhost:8080/api/cattle
 app.use('/breed', /* cors(corsOptions), */ breedRouter); // ? http://localhost:8080/api/breed
+app.use('/lots', /* cors(corsOptions), */ lotsRouter); // ? http://localhost:8080/api/lots
+app.use('/products', /* cors(corsOptions), */ productsRouter); // ? http://localhost:8080/api/products
 
 //* Add more routes to the server
 

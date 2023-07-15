@@ -28,8 +28,8 @@ export /**
 const createCattle = async (
   cattle: ICattle,
   connection?: Sequelize
-): Promise<CreateResult> => {
-  let response: CreateResult;
+): Promise<CreateResult<ICattle>> => {
+  let response: CreateResult<ICattle>;
   try {
     const cattleModel = await cattleEntity(connection);
     const cattleExist = await cattleModel?.findOne({
@@ -77,11 +77,11 @@ const getAllCattle = async (
   page: number,
   limit: number,
   connection?: Sequelize
-): Promise<DataResponse | undefined | unknown> => {
-  const response: DataResponse = {
+): Promise<DataResponse<ICattle> | undefined | unknown> => {
+  const response: DataResponse<ICattle> = {
     totalPages: 0,
     currentPage: 0,
-    data: [],
+    item: [],
   };
   try {
     const offset = limit * (page - 1);
@@ -93,7 +93,7 @@ const getAllCattle = async (
         offset,
       })
       .then((cattle: Array<Model<ICattle, ICattle>>) => {
-        response.data = cattle;
+        response.item = cattle;
       });
     await cattleModel?.count().then((total: number) => {
       response.totalPages = Math.ceil(total / limit);
@@ -105,7 +105,7 @@ const getAllCattle = async (
       response.error = error.message;
     }
   }
-  return response.data.length > 0 ? response : response.error;
+  return response.item.length > 0 ? response : response.error;
 };
 
 export /**
@@ -119,12 +119,12 @@ export /**
 const getCattleByIdOrNumber = async (
   number?: number,
   connection?: Sequelize
-): CattleResult => {
+): CattleResult<ICattle> => {
   try {
     const cattleModel = await cattleEntity(connection);
     const response = await cattleModel?.findOne({
       where: {
-        [Op.or]: [{ id: number }, { number }],
+        [Op.or]: [{ id: number }, { number }, { BreedId: number }],
       },
       attributes: {
         exclude: ['createdAt', 'updatedAt'],
