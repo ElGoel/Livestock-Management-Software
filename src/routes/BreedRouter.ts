@@ -9,7 +9,6 @@ import { BreedController } from '../controller/BreedController';
 
 // ? Utils Methods
 import logger from '../utils/logger';
-import { generateCodeFromName } from '../utils/generateCode';
 import {
   validateCreateBreed,
   validateUpdateCattle,
@@ -55,13 +54,16 @@ breedRouter.post(
           res.status(400).send(message);
           next(error);
         } else {
-          const breedObj = _.pick(req.body, ['origin', 'name', 'production']);
-          const modifiedBreedObj = _.defaults(breedObj, {
-            code: generateCodeFromName(breedObj.name),
-          });
           const controller: BreedController = new BreedController();
+          const breedObj = _.pick(req.body, [
+            'code',
+            'origin',
+            'name',
+            'production',
+            'isEditable',
+          ]);
           const response: CreateResult<IBreed> = await controller.createBreed(
-            modifiedBreedObj,
+            breedObj,
             connection
           );
           if (response !== undefined) {
@@ -89,18 +91,9 @@ breedRouter.get(
     connectDb()
       .then(async sequelize => {
         connection = sequelize;
-        const limit = req?.query?.limit?.toString();
-        const page = req?.query?.page?.toString();
-        let parsePage = 1;
-        let parseLimit = 10;
-        if (page !== undefined && limit !== undefined) {
-          logger(`Query Param: ${page}, ${limit}`);
-          parseLimit = parseInt(limit);
-          parsePage = parseInt(page);
-        }
         const controller: BreedController = new BreedController();
         const response: DataResponse<IBreed> | unknown | undefined =
-          await controller.getBreed(parsePage, parseLimit, connection);
+          await controller.getBreed(connection);
         res.status(200).send(response);
       })
       .catch(error => {
@@ -163,7 +156,6 @@ breedRouter.put(
         connection = sequelize;
         const id = parseInt(req.params.id);
         const breed: IBreed = {
-          code: generateCodeFromName(req.body.name),
           origin: req.body.origin,
           name: req.body.name,
           production: req.body.production,

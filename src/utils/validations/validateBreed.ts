@@ -6,9 +6,11 @@ export const validateCreateBreed = (
   breed: IBreed
 ): Joi.ValidationResult<IBreed> => {
   const schema = Joi.object({
+    code: Joi.string().min(2),
     origin: Joi.string().min(3).required(),
     name: Joi.string().min(3).required(),
     production: Joi.string().required(),
+    isEditable: Joi.boolean(),
   });
 
   return schema.validate(breed);

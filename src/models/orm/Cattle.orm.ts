@@ -105,7 +105,7 @@ const getAllCattle = async (
       response.error = error.message;
     }
   }
-  return response.item.length > 0 ? response : response.error;
+  return response;
 };
 
 export /**

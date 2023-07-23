@@ -10,11 +10,12 @@ import { breedEntity } from '../entities/Breed.entity';
 // ? Types and Interfaces
 import { type IBreed } from '../../interfaces/cattle.interface';
 import { type Sequelize, type Model, Op } from 'sequelize';
-import { type DataResponse } from '../../interfaces';
+// import { type DataResponse } from '../../interfaces';
 import {
   type CreateResult,
   type CattleResult,
 } from '../../types/PromiseTypeResponse';
+import { type Data } from '@/types/dataTypes';
 
 dotenv.config();
 
@@ -37,7 +38,7 @@ const createBreed = async (
         name: breed?.name,
       },
     });
-    if (breedExist !== null) {
+    if (breedExist !== null && breedExist !== undefined) {
       response = { message: 'Breed already exists', status: 400 };
     } else {
       await breedModel?.create(breed);
@@ -74,40 +75,33 @@ export /**
  * @return {Promise<DataResponse | undefined | unknown>}
  */
 const getAllBreed = async (
-  page: number,
-  limit: number,
   connection?: Sequelize
-): Promise<DataResponse<IBreed> | undefined | unknown> => {
-  const response: DataResponse<IBreed> = {
-    totalPages: 0,
-    currentPage: 0,
+): Promise<{ item: Data<IBreed>; error?: string } | undefined | unknown> => {
+  const response: { item: Data<IBreed>; error?: string } = {
     item: [],
   };
   try {
-    const offset = limit * (page - 1);
     const breedModel = await breedEntity(connection);
     await breedModel
       ?.findAll({
         attributes: {
           exclude: ['createdAt', 'updatedAt'],
         },
-        limit,
-        offset,
       })
       .then((breed: Array<Model<IBreed, IBreed>>) => {
         response.item = breed;
       });
-    await breedModel?.count().then((total: number) => {
-      response.totalPages = Math.ceil(total / limit);
-      response.currentPage = page;
-    });
+    // await breedModel?.count().then((total: number) => {
+    //   response.totalPages = Math.ceil(total / limit);
+    //   response.currentPage = page;
+    // });
   } catch (error) {
     if (error instanceof Error) {
       logger(`[ORM ERROR] Get All breed:${error.message}`, 'error', 'users');
       response.error = error.message;
     }
   }
-  return response.item.length > 0 ? response : response.error;
+  return response;
 };
 
 export /**

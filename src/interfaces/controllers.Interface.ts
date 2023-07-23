@@ -42,12 +42,7 @@ export interface ICattleController<T extends ICattle> {
 
 export interface IBreedController<T extends IBreed> {
   // ? Get All Cattle's
-  getBreed: (
-    page: number,
-    limit: number,
-    connection: Sequelize,
-    id?: number
-  ) => CattleResult<T>;
+  getBreed: (connection: Sequelize, id?: number) => CattleResult<T>;
 
   // ? Create a new Cattle
   createBreed: (

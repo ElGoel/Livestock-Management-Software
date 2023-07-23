@@ -26,14 +26,10 @@ import {
 @Tags('BreedController')
 export class BreedController implements IBreedController<IBreed> {
   @Get('/')
-  public async getBreed(
-    page: number,
-    limit: number,
-    connection?: Sequelize
-  ): CattleResult<IBreed> {
+  public async getBreed(connection?: Sequelize): CattleResult<IBreed> {
     logger('[/api/breed] GET All Cattle Request');
 
-    return await getAllBreed(page, limit, connection);
+    return await getAllBreed(connection);
   }
 
   @Post('/')

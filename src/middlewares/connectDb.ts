@@ -9,12 +9,14 @@ import newSequelize from './db';
 const connectDb = async (): Promise<Sequelize | undefined> => {
   try {
     const sequelize: Sequelize | undefined = newSequelize();
-    await sequelize?.authenticate();
-    logger(
-      'Connection to database has been established successfully.',
-      'info',
-      'db'
-    );
+    if (sequelize !== undefined) {
+      await sequelize?.authenticate();
+      logger(
+        'Connection to database has been established successfully.',
+        'info',
+        'db'
+      );
+    }
     return sequelize;
   } catch (error: unknown) {
     if (error instanceof Error && error !== undefined) {
