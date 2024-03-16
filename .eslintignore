@@ -1,0 +1,5 @@
+dist
+__test__
+webpack.config.js
+babel.config.js
+config

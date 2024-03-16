@@ -1,0 +1,20 @@
+{
+  "entryFile": "index.ts",
+  "noImplicitAdditionalProperties": "throw-on-extras",
+  "spec": {
+    "outputDirectory": "public",
+    "specVersion": 3
+  },
+  "swagger": {
+    "outputDirectory": "./dist",
+    "entryFile": "./src/server.ts",
+    "basePath": "/api",
+    "name": "-----"
+  },
+  "routes": {
+    "basePath": "/api",
+    "entryFile": "./src/server.ts",
+    "routesDir": "./src/api/routes"
+  },
+  "ignore": ["**/node_modules/**"]
+}
