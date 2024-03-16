@@ -2,7 +2,7 @@
   "name": "livestock_management_sofware",
   "version": "1.0.0",
   "description": "Livestock product management and administration software designed for livestock farms.",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "swagger": "tsoa spec",
     "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\"",
